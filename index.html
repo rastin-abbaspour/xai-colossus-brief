@@ -49,7 +49,8 @@
   .panel{display:none;max-width:720px;}
   .panel.active{display:block;}
 
-  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--rust);margin:0 0 12px;}
+  .eyebrow{display:none;}
+  #home .eyebrow{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--rust);margin:0 0 12px;}
   h1.title{font-family:var(--serif);font-size:clamp(25px,3.1vw,34px);line-height:1.16;margin:0 0 18px;font-weight:600;color:var(--ink);letter-spacing:-.2px;}
   p.lead-p{font-size:16.5px;line-height:1.66;color:var(--ink2);margin:0 0 26px;}
   p.lead-p b{color:var(--ink);font-weight:600;}
@@ -129,8 +130,7 @@
 <div class="app">
 
   <header class="masthead">
-    <span class="org">UNU INWEH</span>
-    <span class="ttl">Powering Colossus</span>
+    <span class="ttl">xAI's Colossus Data Center: Environmental Footprint and Policy</span>
     <span class="right">Research Brief &middot; July 2026</span>
   </header>
 
@@ -146,7 +146,6 @@
       <button class="navbtn" data-target="s4"><div class="row"><span class="n">4</span><span class="lab">Wider pollutants</span></div><div class="sub">Particulates, CO, carbon</div></button>
       <button class="navbtn" data-target="s5"><div class="row"><span class="n">5</span><span class="lab">Water</span></div><div class="sub">Cooling and the aquifer</div></button>
       <button class="navbtn" data-target="s6"><div class="row"><span class="n">6</span><span class="lab">Accountability</span></div><div class="sub">Permits, litigation, penalties</div></button>
-      <p class="note">Figures are labeled as metered actuals, permitted allowances, or potential-to-emit estimates, and are tied to a date.</p>
     </nav>
 
     <!-- CONTENT -->
@@ -154,8 +153,8 @@
 
       <!-- HOME -->
       <section class="panel active" id="home">
-        <p class="eyebrow">UN University Institute for Water, Environment and Health</p>
-        <h1 class="title">The energy and emissions footprint of xAI's Colossus data centers</h1>
+        <p class="eyebrow">Rastin Abbaspour report for UNU INWEH</p>
+        <h1 class="title">xAI's Colossus Data Center: Environmental Footprint and Policy</h1>
         <p class="ov-lead">In roughly four months, xAI assembled one of the world's largest AI training clusters inside a former factory in South Memphis. The local grid could not deliver the power it needed, so the company ran dozens of natural gas turbines on the property. This brief traces what that decision meant for electricity demand, air pollution, water, and public accountability.</p>
 
         <div class="ovstats">
@@ -275,7 +274,7 @@
           <li class="red"><div class="d">Mid-2026</div><div class="x">The U.S. Department of Justice moves to dismiss, arguing Grok supports national security. <b>Still no fine levied.</b></div></li>
         </ul>
         <div class="pull plain" style="margin-top:26px;">
-          <p><b>Why it matters for UNU INWEH.</b> Memphis compresses the resource and governance tensions of the AI boom into two sites and two years. When grid interconnection lags demand, operators substitute on-site combustion, turning a computing decision into a local air, climate, and water liability, borne first by an overburdened community.</p>
+          <p><b>Why it matters for UNU INWEH.</b> In just two sites over two years, Memphis shows how fast the strains of the AI boom can land on the ground. When the grid cannot deliver power quickly enough, companies fall back on burning gas on site. A decision about computing then becomes a local problem of dirtier air, higher carbon emissions, and greater pressure on drinking water, and the cost of that trade-off falls first on a community already living with more pollution than most.</p>
         </div>
       </section>
 
