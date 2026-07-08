@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Powering Colossus — xAI Energy &amp; Emissions | UNU INWEH</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root{
+    color-scheme: light;
+    --ink:#1c1c1a; --ink2:#3a3a37; --muted:#6a6a64; --faint:#8f8f88;
+    --navy:#1f3a5f; --rust:#9c3b28; --slate:#7d8894;
+    --paper:#ffffff; --bg:#f4f2ec; --rail:#f9f8f4;
+    --line:#dcd8ce; --line-soft:#e8e4da; --hair:#c9c4b8;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;font-size:16px;}
+  button{font-family:inherit;color:inherit;}
+
+  .app{display:flex;flex-direction:column;height:100vh;max-width:1180px;margin:0 auto;background:var(--paper);border-left:1px solid var(--line);border-right:1px solid var(--line);}
+
+  /* masthead */
+  .masthead{flex:0 0 auto;padding:16px 34px;border-bottom:2px solid var(--ink);display:flex;align-items:baseline;gap:16px;background:var(--paper);}
+  .masthead .org{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  .masthead .ttl{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);letter-spacing:.1px;}
+  .masthead .right{margin-left:auto;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);white-space:nowrap;}
+
+  .body{display:flex;flex:1 1 auto;min-height:0;}
+
+  /* ---- contents rail ---- */
+  .rail{flex:0 0 250px;background:var(--rail);border-right:1px solid var(--line);overflow-y:auto;padding:22px 0 16px;}
+  .rail .head{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);font-weight:700;padding:0 24px 12px;}
+  .navbtn{display:block;width:100%;text-align:left;background:transparent;border:0;border-left:3px solid transparent;padding:11px 24px 11px 21px;cursor:pointer;transition:background .12s;}
+  .navbtn:hover{background:#efece4;}
+  .navbtn .row{display:flex;align-items:baseline;gap:11px;}
+  .navbtn .n{font-family:var(--serif);font-size:13px;color:var(--faint);font-weight:600;min-width:20px;font-variant-numeric:tabular-nums;}
+  .navbtn .lab{font-size:14.5px;color:var(--ink2);font-weight:500;line-height:1.3;}
+  .navbtn .sub{font-size:11.5px;color:var(--faint);margin:2px 0 0 31px;line-height:1.3;}
+  .navbtn.active{background:var(--paper);border-left-color:var(--rust);}
+  .navbtn.active .lab{color:var(--ink);font-weight:700;}
+  .navbtn.active .n{color:var(--rust);}
+  .rail .note{padding:16px 24px 0;margin-top:14px;border-top:1px solid var(--line-soft);font-size:11px;color:var(--faint);line-height:1.5;}
+
+  /* ---- content ---- */
+  .content{flex:1 1 auto;min-width:0;overflow-y:auto;padding:36px 52px 48px;}
+  .panel{display:none;max-width:720px;}
+  .panel.active{display:block;}
+
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--rust);margin:0 0 12px;}
+  h1.title{font-family:var(--serif);font-size:clamp(25px,3.1vw,34px);line-height:1.16;margin:0 0 18px;font-weight:600;color:var(--ink);letter-spacing:-.2px;}
+  p.lead-p{font-size:16.5px;line-height:1.66;color:var(--ink2);margin:0 0 26px;}
+  p.lead-p b{color:var(--ink);font-weight:600;}
+  .note{font-size:12.5px;color:var(--muted);margin:14px 0 0;line-height:1.55;}
+
+  /* figure block */
+  .figure{border:1px solid var(--line);background:var(--paper);padding:20px 22px 16px;margin-top:6px;}
+  .figure .fcap{font-size:12px;color:var(--muted);margin:0 0 4px;}
+  .figure .fcap b{color:var(--ink);font-weight:700;letter-spacing:.02em;}
+  .figure .ftitle{font-family:var(--serif);font-size:16.5px;color:var(--ink);margin:0 0 3px;font-weight:600;}
+  .figure .fsub{font-size:12.5px;color:var(--muted);margin:0 0 16px;line-height:1.45;}
+  .chart-box{position:relative;height:350px;}
+  .chart-box.sm{height:290px;}
+  .chart-box.tall{height:410px;}
+  .legend-inline{font-size:12px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft);}
+  .legend-inline .sw{display:inline-block;width:12px;height:12px;vertical-align:middle;margin:0 6px 0 16px;}
+  .legend-inline .sw:first-child{margin-left:0;}
+  .fsource{font-size:11px;color:var(--faint);margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);}
+
+  /* stats row */
+  .stats{display:flex;flex-wrap:wrap;margin-top:24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .stat{flex:1 1 150px;padding:16px 18px;border-right:1px solid var(--line-soft);}
+  .stat:last-child{border-right:0;}
+  .stat .big{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--navy);line-height:1;}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.4;}
+
+  /* pull */
+  .pull{border-left:3px solid var(--rust);padding:4px 0 4px 22px;margin-top:26px;}
+  .pull .hero-n{font-family:var(--serif);font-size:32px;font-weight:600;color:var(--rust);line-height:1.05;}
+  .pull p{margin:8px 0 0;font-size:15px;line-height:1.6;color:var(--ink2);}
+  .pull p b{color:var(--ink);font-weight:600;}
+  .pull.plain p{margin-top:0;}
+
+  /* timeline */
+  .tl{list-style:none;margin:2px 0 0;padding:0;}
+  .tl li{display:grid;grid-template-columns:118px 1fr;gap:16px;padding:12px 0;border-top:1px solid var(--line-soft);}
+  .tl li:first-child{border-top:0;}
+  .tl .d{font-family:var(--serif);font-weight:600;color:var(--navy);font-size:14px;}
+  .tl .x{font-size:14.5px;color:var(--ink2);line-height:1.5;}
+  .tl li.red .d{color:var(--rust);}
+  .tl .x b{color:var(--rust);font-weight:600;}
+
+  /* overview */
+  .ov-lead{font-family:var(--serif);font-size:19px;line-height:1.6;color:var(--ink2);margin:0 0 4px;}
+  .ov-lead .drop{float:left;font-size:52px;line-height:.82;font-weight:600;color:var(--rust);padding:6px 8px 0 0;}
+  .rule{height:1px;background:var(--line);margin:26px 0;}
+  .contents{margin:0;padding:0;list-style:none;}
+  .citem{display:grid;grid-template-columns:34px 1fr;gap:4px 14px;align-items:baseline;padding:14px 4px;border-top:1px solid var(--line-soft);cursor:pointer;transition:background .12s;}
+  .citem:hover{background:#f7f5ef;}
+  .citem:hover .ci-t{color:var(--rust);}
+  .citem .ci-n{font-family:var(--serif);font-size:15px;color:var(--faint);font-weight:600;font-variant-numeric:tabular-nums;}
+  .citem .ci-t{font-family:var(--serif);font-size:17px;color:var(--ink);font-weight:600;transition:color .12s;}
+  .citem .ci-d{grid-column:2;font-size:13px;color:var(--muted);line-height:1.45;}
+  .ovstats{display:flex;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:24px 0 0;}
+
+  /* pager */
+  .pager{display:flex;justify-content:space-between;margin-top:30px;padding-top:16px;border-top:1px solid var(--line);}
+  .pbtn{background:transparent;border:0;color:var(--navy);font-weight:600;font-size:13.5px;padding:6px 2px;cursor:pointer;letter-spacing:.02em;}
+  .pbtn:hover:not(:disabled){color:var(--rust);}
+  .pbtn:disabled{opacity:.3;cursor:default;}
+
+  @media(max-width:820px){
+    body{overflow:auto;}
+    .app{height:auto;border:0;}
+    .body{flex-direction:column;}
+    .rail{flex:none;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;display:flex;padding:8px 12px;}
+    .rail .head,.rail .note{display:none;}
+    .navbtn{width:auto;border-left:0;border-bottom:3px solid transparent;padding:8px 14px;}
+    .navbtn .sub{display:none;}
+    .navbtn.active{border-left:0;border-bottom-color:var(--rust);}
+    .content{overflow:visible;padding:26px 20px 40px;}
+    .panel{max-width:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="masthead">
+    <span class="org">UNU INWEH</span>
+    <span class="ttl">Powering Colossus</span>
+    <span class="right">Research Brief &middot; July 2026</span>
+  </header>
+
+  <div class="body">
+
+    <!-- CONTENTS -->
+    <nav class="rail" id="rail">
+      <div class="head">Contents</div>
+      <button class="navbtn active" data-target="home"><div class="row"><span class="n">—</span><span class="lab">Overview</span></div></button>
+      <button class="navbtn" data-target="s1"><div class="row"><span class="n">1</span><span class="lab">The power gap</span></div><div class="sub">Grid supply versus on-site gas</div></button>
+      <button class="navbtn" data-target="s2"><div class="row"><span class="n">2</span><span class="lab">The build</span></div><div class="sub">Turbine count over time</div></button>
+      <button class="navbtn" data-target="s3"><div class="row"><span class="n">3</span><span class="lab">Nitrogen oxides</span></div><div class="sub">Regional emissions comparison</div></button>
+      <button class="navbtn" data-target="s4"><div class="row"><span class="n">4</span><span class="lab">Wider pollutants</span></div><div class="sub">Particulates, CO, carbon</div></button>
+      <button class="navbtn" data-target="s5"><div class="row"><span class="n">5</span><span class="lab">Water</span></div><div class="sub">Cooling and the aquifer</div></button>
+      <button class="navbtn" data-target="s6"><div class="row"><span class="n">6</span><span class="lab">Accountability</span></div><div class="sub">Permits, litigation, penalties</div></button>
+      <p class="note">Figures are labeled as metered actuals, permitted allowances, or potential-to-emit estimates, and are tied to a date.</p>
+    </nav>
+
+    <!-- CONTENT -->
+    <main class="content" id="content">
+
+      <!-- HOME -->
+      <section class="panel active" id="home">
+        <p class="eyebrow">UN University Institute for Water, Environment and Health</p>
+        <h1 class="title">The energy and emissions footprint of xAI's Colossus data centers</h1>
+        <p class="ov-lead">In roughly four months, xAI assembled one of the world's largest AI training clusters inside a former factory in South Memphis. The local grid could not deliver the power it needed, so the company ran dozens of natural gas turbines on the property. This brief traces what that decision meant for electricity demand, air pollution, water, and public accountability.</p>
+
+        <div class="ovstats">
+          <div class="stat"><div class="big">~420 MW</div><div class="lbl">Peak on-site gas capacity at Colossus 1</div></div>
+          <div class="stat"><div class="big">1,200–2,000</div><div class="lbl">Tons of NOx per year, estimated</div></div>
+          <div class="stat"><div class="big">&gt;6M tons</div><div class="lbl">GHG/yr projected, proposed Southaven plant</div></div>
+          <div class="stat"><div class="big">None</div><div class="lbl">Fines levied by any regulator, to mid-2026</div></div>
+        </div>
+
+        <div class="rule"></div>
+        <ul class="contents">
+          <li class="citem" data-target="s1"><span class="ci-n">1</span><span class="ci-t">The power gap</span><span class="ci-d">A cluster that outran its grid connection, and the gas that filled the difference.</span></li>
+          <li class="citem" data-target="s2"><span class="ci-n">2</span><span class="ci-t">The build</span><span class="ci-d">Dozens of turbines installed on site, most of them before any permit was issued.</span></li>
+          <li class="citem" data-target="s3"><span class="ci-n">3</span><span class="ci-t">Nitrogen oxides</span><span class="ci-d">Likely the largest single industrial source of NOx in the greater Memphis area.</span></li>
+          <li class="citem" data-target="s4"><span class="ci-n">4</span><span class="ci-t">Wider pollutants</span><span class="ci-d">Particulates, carbon monoxide, formaldehyde, and a large projected carbon total.</span></li>
+          <li class="citem" data-target="s5"><span class="ci-n">5</span><span class="ci-t">Water</span><span class="ci-d">Cooling that draws on a drinking-water aquifer, and a stalled recycling plant.</span></li>
+          <li class="citem" data-target="s6"><span class="ci-n">6</span><span class="ci-t">Accountability</span><span class="ci-d">Permits after the fact, a dismissed appeal, and no penalty to date.</span></li>
+        </ul>
+      </section>
+
+      <!-- S1 -->
+      <section class="panel" id="s1">
+        <p class="eyebrow">Section 1 &middot; The problem</p>
+        <h1 class="title">A machine that outran its power grid</h1>
+        <p class="lead-p">xAI assembled its Colossus supercomputer in South Memphis in roughly 122 days. The site had just <b>8 megawatts</b> of grid power at first, against a machine that would soon draw hundreds. The utility caught up slowly, and the gap in between was met by burning gas on site.</p>
+        <div class="figure">
+          <p class="fcap"><b>Figure 1.</b> Megawatts (MW)</p>
+          <p class="ftitle">Grid power secured versus on-site gas turbine capacity</p>
+          <p class="fsub">The rust line shows generating capacity xAI installed on its own property.</p>
+          <div class="chart-box"><canvas id="cGap"></canvas></div>
+          <p class="legend-inline"><span class="sw" style="background:#1f3a5f"></span>Grid capacity (MLGW / TVA)<span class="sw" style="background:#9c3b28"></span>On-site gas turbines</p>
+          <p class="fsource">Source: Southern Environmental Law Center aerial and thermal surveys; MLGW / TVA filings.</p>
+        </div>
+        <p class="note">Grid milestones: 8 MW available initially, raised toward 50 MW, then 150 MW via a new substation around May 2025, moving toward roughly 300 MW.</p>
+      </section>
+
+      <!-- S2 -->
+      <section class="panel" id="s2">
+        <p class="eyebrow">Section 2 &middot; The build</p>
+        <h1 class="title">Dozens of turbines, few permits</h1>
+        <p class="lead-p">Trucked-in natural gas turbines multiplied on the site. By spring 2025, surveys counted about <b>35 turbines</b> running, roughly 420 MW, comparable to a mid-size power plant, most of it operating before any air permit was issued. After legal pressure, xAI kept 15 permitted units in Memphis, then moved 27 more across the state line to Southaven, Mississippi.</p>
+        <div class="figure">
+          <p class="fcap"><b>Figure 2.</b> Number of turbines documented</p>
+          <p class="ftitle">On-site gas turbines over time</p>
+          <p class="fsub">Blue denotes permitted units; rust denotes turbines operating without a permit.</p>
+          <div class="chart-box"><canvas id="cTurb"></canvas></div>
+          <p class="fsource">Source: Southern Environmental Law Center; Shelby County Health Department permit records.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="big">~35</div><div class="lbl">Turbines at Colossus 1 peak, spring 2025</div></div>
+          <div class="stat"><div class="big">15</div><div class="lbl">Turbines finally permitted, July 2, 2025</div></div>
+          <div class="stat"><div class="big">27</div><div class="lbl">Unpermitted turbines moved to Southaven</div></div>
+          <div class="stat"><div class="big">~420 MW</div><div class="lbl">Peak on-site capacity</div></div>
+        </div>
+      </section>
+
+      <!-- S3 -->
+      <section class="panel" id="s3">
+        <p class="eyebrow">Section 3 &middot; The emissions</p>
+        <h1 class="title">Likely the largest industrial NOx source in the region</h1>
+        <p class="lead-p">Nitrogen oxides are the headline pollutant. Using manufacturer emission factors, advocates estimate the Colossus 1 turbines could emit <b>1,200 to 2,000 tons of NOx a year</b>, more than any single established industrial source nearby, including the airport, a chemical plant, and an oil refinery.</p>
+        <div class="figure">
+          <p class="fcap"><b>Figure 3.</b> Tons of NOx per year</p>
+          <p class="ftitle">Estimated annual NOx emissions, greater Memphis sources</p>
+          <p class="fsub">xAI figures are potential-to-emit estimates; comparison sources are from the national emissions inventory.</p>
+          <div class="chart-box tall"><canvas id="cNox"></canvas></div>
+          <p class="fsource">Source: Southern Environmental Law Center estimates; U.S. National Emissions Inventory.</p>
+        </div>
+        <p class="note">The xAI bar reflects the top of the 1,200 to 2,000 ton estimated range for the ~35 Colossus 1 turbines. Southaven's 27 turbines are estimated separately at more than 1,700 tons per year.</p>
+      </section>
+
+      <!-- S4 -->
+      <section class="panel" id="s4">
+        <p class="eyebrow">Section 4 &middot; Beyond nitrogen oxides</p>
+        <h1 class="title">Particulates, carbon monoxide, formaldehyde, and carbon</h1>
+        <p class="lead-p">The Southaven turbines carry a wider pollution profile on a potential-to-emit basis. On climate, xAI's own filing for a proposed permanent 41-turbine plant projects a substantial greenhouse-gas total.</p>
+        <div class="figure">
+          <p class="fcap"><b>Figure 4.</b> Tons per year, potential to emit</p>
+          <p class="ftitle">Estimated potential emissions, Southaven turbines (27 units)</p>
+          <p class="fsub">Advocacy-group estimates based on manufacturer emission factors.</p>
+          <div class="chart-box sm"><canvas id="cOther"></canvas></div>
+          <p class="fsource">Source: Southern Environmental Law Center; Earthjustice.</p>
+        </div>
+        <div class="pull">
+          <div class="hero-n">More than 6,000,000 tons</div>
+          <p>of greenhouse gases per year, projected in the permit application for the proposed permanent <b>41-turbine Southaven plant</b>, alongside more than 1,300 tons of criteria air pollutants.</p>
+        </div>
+      </section>
+
+      <!-- S5 -->
+      <section class="panel" id="s5">
+        <p class="eyebrow">Section 5 &middot; The water</p>
+        <h1 class="title">Cooling that draws on a drinking-water aquifer</h1>
+        <p class="lead-p">The heat that drives the power demand has to be carried away, and Colossus cools with water drawn from the Memphis Sand aquifer. Design projections were large, but metered use has so far been far lower. A recycling plant meant to cut aquifer reliance broke ground in October 2025, then stalled.</p>
+        <div class="figure">
+          <p class="fcap"><b>Figure 5.</b> Gallons per day, logarithmic scale</p>
+          <p class="ftitle">Water use: design projections versus metered reality</p>
+          <p class="fsub">The recycling plant's design capacity dwarfs current metered consumption.</p>
+          <div class="chart-box"><canvas id="cWater"></canvas></div>
+          <p class="fsource">Source: Daily Memphian analysis of utility bills; Memphis Light, Gas &amp; Water; City of Memphis.</p>
+        </div>
+        <p class="note">Metered peak of about 381,000 gallons per day (August to September 2025) sits well below the multi-million-gallon design figures. The $80M, 13-million-gallon-per-day recycling plant is projected to save about 5 billion gallons of aquifer water a year once built.</p>
+      </section>
+
+      <!-- S6 -->
+      <section class="panel" id="s6">
+        <p class="eyebrow">Section 6 &middot; The accountability gap</p>
+        <h1 class="title">Build first, permit later, no fine</h1>
+        <p class="lead-p">Governance lagged far behind construction. Permits arrived after the turbines were already running, an appeal was dismissed on procedural grounds, and by mid-2026 no regulator or court had levied a single monetary penalty, even as the federal government stepped in to defend continued operation.</p>
+        <ul class="tl">
+          <li><div class="d">June 2024</div><div class="x">Colossus 1 goes online; turbines begin running without air permits.</div></li>
+          <li><div class="d">April 2025</div><div class="x">Aerial and thermal surveys document about 35 turbines, most actively running.</div></li>
+          <li class="red"><div class="d">June 17, 2025</div><div class="x">SELC, for the NAACP, files a 60-day notice of intent to sue under the Clean Air Act.</div></li>
+          <li><div class="d">July 2, 2025</div><div class="x">Shelby County grants a permit for 15 turbines, after more than 1,700 public comments.</div></li>
+          <li class="red"><div class="d">Dec 16, 2025</div><div class="x">The local air board dismisses the permit appeal, citing mootness.</div></li>
+          <li class="red"><div class="d">April 14, 2026</div><div class="x">The NAACP sues xAI and its subsidiary MZX Tech in federal court over 27 unpermitted Southaven turbines.</div></li>
+          <li class="red"><div class="d">Mid-2026</div><div class="x">The U.S. Department of Justice moves to dismiss, arguing Grok supports national security. <b>Still no fine levied.</b></div></li>
+        </ul>
+        <div class="pull plain" style="margin-top:26px;">
+          <p><b>Why it matters for UNU INWEH.</b> Memphis compresses the resource and governance tensions of the AI boom into two sites and two years. When grid interconnection lags demand, operators substitute on-site combustion, turning a computing decision into a local air, climate, and water liability, borne first by an overburdened community.</p>
+        </div>
+      </section>
+
+      <div class="pager">
+        <button class="pbtn" id="prev">&larr;&nbsp;&nbsp;Previous</button>
+        <button class="pbtn" id="next">Next&nbsp;&nbsp;&rarr;</button>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SANS = getComputedStyle(document.documentElement).getPropertyValue('--sans');
+  Chart.defaults.font.family = SANS;
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = '#6a6a64';
+  var NAVY='#1f3a5f', RUST='#9c3b28', SLATE='#7d8894', LSLATE='#b6bcc2', GRID='#ebe8e0';
+
+  var order=['home','s1','s2','s3','s4','s5','s6'];
+  var built={}, content=document.getElementById('content');
+  function splitTicks(v){ return this.getLabelForValue(v).split('\n'); }
+
+  var builders={
+    s1:function(){
+      new Chart(document.getElementById('cGap'),{type:'line',
+        data:{labels:['Mid 2024','Late 2024','Early 2025','May 2025','Late 2025'],
+          datasets:[
+            {label:'Grid capacity (MW)',data:[8,50,50,150,300],borderColor:NAVY,backgroundColor:'rgba(31,58,95,.07)',fill:true,tension:.22,borderWidth:2.5,pointRadius:3.5,pointBackgroundColor:NAVY},
+            {label:'On-site gas turbines (MW)',data:[35,150,340,420,247],borderColor:RUST,backgroundColor:'rgba(156,59,40,.07)',fill:true,tension:.22,borderWidth:2.5,pointRadius:3.5,pointBackgroundColor:RUST}
+          ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.parsed.y+' MW';}}}},
+          scales:{y:{beginAtZero:true,title:{display:true,text:'Megawatts'},grid:{color:GRID},border:{color:'#c9c4b8'}},x:{grid:{display:false},border:{color:'#c9c4b8'}}}}});
+    },
+    s2:function(){
+      new Chart(document.getElementById('cTurb'),{type:'bar',
+        data:{labels:['Aug 2024\n(Colossus 1)','Apr 2025\n(C1 peak)','Jul 2025\n(C1 permitted)','Late 2025\n(Southaven)'],
+          datasets:[
+            {label:'Permitted',data:[0,0,15,0],backgroundColor:NAVY,stack:'s'},
+            {label:'Unpermitted / operating',data:[18,35,9,27],backgroundColor:RUST,stack:'s'}
+          ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:16}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.parsed.y+' turbines';}}}},
+          scales:{y:{beginAtZero:true,stacked:true,title:{display:true,text:'Number of turbines'},grid:{color:GRID},border:{color:'#c9c4b8'}},
+            x:{stacked:true,grid:{display:false},border:{color:'#c9c4b8'},ticks:{callback:splitTicks}}}}});
+    },
+    s3:function(){
+      new Chart(document.getElementById('cNox'),{type:'bar',
+        data:{labels:['xAI Colossus 1\n(estimate)','Memphis airport','Draslovka\nchemical plant','Valero refinery','TVA Allen plant'],
+          datasets:[{data:[2000,1077,743,342,230],backgroundColor:[RUST,SLATE,SLATE,SLATE,SLATE]}]},
+        options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{title:function(c){return c[0].label.replace('\n',' ');},label:function(c){return (c.dataIndex===0?'~1,200 to 2,000':c.parsed.x.toLocaleString())+' tons NOx / yr';}}}},
+          scales:{x:{beginAtZero:true,title:{display:true,text:'Tons of NOx per year'},grid:{color:GRID},border:{color:'#c9c4b8'}},
+            y:{grid:{display:false},border:{color:'#c9c4b8'},ticks:{callback:splitTicks}}}}});
+    },
+    s4:function(){
+      new Chart(document.getElementById('cOther'),{type:'bar',
+        data:{labels:['NOx','Carbon monoxide','Particulates (PM2.5)','Formaldehyde'],
+          datasets:[{data:[1700,500,180,19],backgroundColor:[RUST,SLATE,SLATE,SLATE]}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return 'up to '+c.parsed.y.toLocaleString()+' tons / yr';}}}},
+          scales:{y:{beginAtZero:true,title:{display:true,text:'Tons per year (potential)'},grid:{color:GRID},border:{color:'#c9c4b8'}},x:{grid:{display:false},border:{color:'#c9c4b8'}}}}});
+    },
+    s5:function(){
+      new Chart(document.getElementById('cWater'),{type:'bar',
+        data:{labels:['Metered peak\n(Aug-Sep 2025)','MLGW aquifer\ncontract cap','Design cooling\nneed','Full-buildout\nprojection','Recycling plant\ncapacity'],
+          datasets:[{data:[381000,1300000,3000000,5000000,13000000],backgroundColor:[NAVY,SLATE,SLATE,LSLATE,RUST]}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return (c.parsed.y/1e6).toFixed(2)+' million gal/day';}}}},
+          scales:{y:{type:'logarithmic',title:{display:true,text:'Gallons per day (log)'},grid:{color:GRID},border:{color:'#c9c4b8'},
+            ticks:{callback:function(v){if(v===1e5)return'100k';if(v===1e6)return'1M';if(v===1e7)return'10M';return null;}}},
+            x:{grid:{display:false},border:{color:'#c9c4b8'},ticks:{callback:splitTicks}}}}});
+    }
+  };
+
+  function current(){ for(var k of order){ if(document.getElementById(k).classList.contains('active')) return k; } return 'home'; }
+  function show(id){
+    order.forEach(function(o){ document.getElementById(o).classList.toggle('active', o===id); });
+    document.querySelectorAll('.navbtn').forEach(function(b){ b.classList.toggle('active', b.dataset.target===id); });
+    if(builders[id] && !built[id]){ requestAnimationFrame(function(){ builders[id](); built[id]=true; }); }
+    var i=order.indexOf(id);
+    document.getElementById('prev').disabled=(i<=0);
+    document.getElementById('next').disabled=(i>=order.length-1);
+    content.scrollTop=0;
+  }
+  document.querySelectorAll('[data-target]').forEach(function(el){ el.addEventListener('click',function(){ show(el.dataset.target); }); });
+  document.getElementById('prev').addEventListener('click',function(){ var i=order.indexOf(current()); if(i>0) show(order[i-1]); });
+  document.getElementById('next').addEventListener('click',function(){ var i=order.indexOf(current()); if(i<order.length-1) show(order[i+1]); });
+  show('home');
+})();
+</script>
+</body>
+</html>
